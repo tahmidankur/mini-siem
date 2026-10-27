@@ -34,10 +34,18 @@ rule_filter = st.sidebar.multiselect("Rule", rules, default=rules)
 shown = alerts[alerts.severity.isin(severity_filter) & alerts.rule.isin(rule_filter)]
 
 st.subheader("Alerts")
-table = shown[["ts_start", "ts_end", "severity", "rule", "technique", "ip", "details"]]
+table = pd.DataFrame({
+    "Start": shown.ts_start.str.replace("T", " "),
+    "End": shown.ts_end.str.replace("T", " "),
+    "Severity": shown.severity,
+    "Rule": shown.rule,
+    "IP": shown.ip,
+    "Details": shown.details,
+    "Technique": shown.technique,
+})
 styled = table.style.map(lambda s: f"color: {SEVERITY_COLORS.get(s, 'inherit')}; font-weight: 600",
-                         subset=["severity"])
-st.dataframe(styled, hide_index=True, width="stretch")
+                         subset=["Severity"])
+st.dataframe(styled, hide_index=True, width="stretch", column_config={"Details": st.column_config.Column(width="large")})
 
 # SSH and web volumes differ by about 30x, so a shared axis would flatten SSH to nothing.
 st.subheader("Events per hour")
@@ -56,11 +64,12 @@ top_ips = (
     .sort_values(["rank", "alerts"], ascending=[True, False])
     .reset_index()
 )
-top_ips["worst severity"] = top_ips["rank"].map(lambda i: SEVERITIES[i])
-st.dataframe(top_ips[["ip", "alerts", "worst severity", "rules"]], hide_index=True, width="stretch")
+top_ips["Worst severity"] = top_ips["rank"].map(lambda i: SEVERITIES[i])
+top_ips = top_ips.rename(columns={"ip": "IP", "alerts": "Alerts", "rules": "Rules"})
+st.dataframe(top_ips[["IP", "Alerts", "Worst severity", "Rules"]], hide_index=True, width="stretch")
 
 st.subheader("IP drill-down")
-ip = st.selectbox("Alerting IP", top_ips.ip)
+ip = st.selectbox("Alerting IP", top_ips.IP)
 if ip:
     lines = pd.read_sql_query("SELECT raw FROM events WHERE ip = ? ORDER BY ts", conn, params=(ip,))
     st.caption(f"{len(lines)} log lines from {ip}")
