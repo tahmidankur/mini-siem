@@ -4,17 +4,26 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+import ingest
+
 DB_PATH = "siem.db"
+SAMPLE_YEAR = 2026
 SEVERITIES = ["critical", "high", "medium", "low"]
 SEVERITY_COLORS = {"critical": "#B42318", "high": "#C2410C", "medium": "#A16207", "low": "#57534E"}
+
+
+# A fresh clone or a hosted deploy has no siem.db yet, so build it from the sample logs.
+# cache_resource makes this run once per server, even if two visitors arrive together.
+@st.cache_resource
+def ensure_database() -> None:
+    if not Path(DB_PATH).exists():
+        ingest.build("sample_logs/auth.log", "sample_logs/access.log", DB_PATH, SAMPLE_YEAR)
+
 
 st.set_page_config(page_title="mini-siem", layout="wide")
 st.title("mini-siem")
 
-if not Path(DB_PATH).exists():
-    st.info("No database found. Run `python ingest.py` first, then reload this page.")
-    st.stop()
-
+ensure_database()
 conn = sqlite3.connect(DB_PATH)
 events = pd.read_sql_query("SELECT ts, source, ip FROM events", conn, parse_dates=["ts"])
 alerts = pd.read_sql_query("SELECT * FROM alerts ORDER BY ts_start DESC", conn)

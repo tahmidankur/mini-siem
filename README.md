@@ -24,7 +24,7 @@ streamlit run dashboard.py
 
 `ingest.py` reads the two files in `sample_logs/` by default. To use your own logs, pass `--auth` and `--access`. Syslog timestamps don't include a year, so `--year` sets it. It defaults to the current year, and the sample data is from 2026.
 
-The database is rebuilt from scratch every time `ingest.py` runs.
+The database is rebuilt from scratch every time `ingest.py` runs. If `siem.db` doesn't exist when the dashboard starts, the dashboard builds it from the sample logs itself, so the `ingest.py` step is optional for the sample data.
 
 ## What it detects
 

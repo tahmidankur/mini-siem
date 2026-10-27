@@ -19,26 +19,18 @@ def parse_file(path: Path, parse) -> tuple[list[dict], int]:
     return events, skipped
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Load SSH and web logs into SQLite and run detections.")
-    parser.add_argument("--auth", default="sample_logs/auth.log", help="SSH auth log")
-    parser.add_argument("--access", default="sample_logs/access.log", help="web access log")
-    parser.add_argument("--db", default="siem.db", help="SQLite file to (re)create")
-    parser.add_argument("--year", type=int, default=date.today().year,
-                        help="year for auth.log timestamps, which don't include one")
-    args = parser.parse_args()
+def build(auth: str, access: str, db_path: str, year: int) -> None:
+    ssh_events, ssh_skipped = parse_file(Path(auth), lambda line: parse_ssh(line, year))
+    web_events, web_skipped = parse_file(Path(access), parse_web)
+    print(f"{auth}: {len(ssh_events)} events, {ssh_skipped} lines skipped")
+    print(f"{access}: {len(web_events)} events, {web_skipped} lines skipped")
 
-    ssh_events, ssh_skipped = parse_file(Path(args.auth), lambda line: parse_ssh(line, args.year))
-    web_events, web_skipped = parse_file(Path(args.access), parse_web)
-    print(f"{args.auth}: {len(ssh_events)} events, {ssh_skipped} lines skipped")
-    print(f"{args.access}: {len(web_events)} events, {web_skipped} lines skipped")
-
-    Path(args.db).unlink(missing_ok=True)
-    conn = db.connect(args.db)
+    Path(db_path).unlink(missing_ok=True)
+    conn = db.connect(db_path)
     db.create_tables(conn)
     db.insert_events(conn, ssh_events + web_events)
     counts = db.count_events(conn)
-    print(f"stored {sum(counts.values())} events in {args.db} (ssh {counts.get('ssh', 0)}, web {counts.get('web', 0)})")
+    print(f"stored {sum(counts.values())} events in {db_path} (ssh {counts.get('ssh', 0)}, web {counts.get('web', 0)})")
 
     alerts = detections.run_all(conn)
     db.insert_alerts(conn, alerts)
@@ -48,6 +40,17 @@ def main() -> None:
         for alert in group:
             print(f"  {alert['severity']:<8} {alert['ip']:<15} {alert['ts_start']}  {alert['details']}")
     conn.close()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Load SSH and web logs into SQLite and run detections.")
+    parser.add_argument("--auth", default="sample_logs/auth.log", help="SSH auth log")
+    parser.add_argument("--access", default="sample_logs/access.log", help="web access log")
+    parser.add_argument("--db", default="siem.db", help="SQLite file to (re)create")
+    parser.add_argument("--year", type=int, default=date.today().year,
+                        help="year for auth.log timestamps, which don't include one")
+    args = parser.parse_args()
+    build(args.auth, args.access, args.db, args.year)
 
 
 if __name__ == "__main__":
