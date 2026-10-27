@@ -20,8 +20,8 @@ def ensure_database() -> None:
         ingest.build("sample_logs/auth.log", "sample_logs/access.log", DB_PATH, SAMPLE_YEAR)
 
 
-st.set_page_config(page_title="mini-siem", layout="wide")
-st.title("mini-siem")
+st.set_page_config(page_title="Mini SIEM", layout="wide")
+st.title("Mini SIEM")
 
 ensure_database()
 conn = sqlite3.connect(DB_PATH)

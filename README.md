@@ -1,6 +1,6 @@
-# mini-siem
+# Mini SIEM
 
-mini-siem is a small intrusion detection tool I built to learn how log-based detection works. It reads an SSH auth log and a web server access log, loads them into SQLite, runs three detection rules, and tags each alert with a MITRE ATT&CK technique. The results show up in a Streamlit dashboard.
+Mini SIEM is a small intrusion detection tool I built to learn how log-based detection works. It reads an SSH auth log and a web server access log, loads them into SQLite, runs three detection rules, and tags each alert with a MITRE ATT&CK technique. The results show up in a Streamlit dashboard.
 
 It's not meant to replace a real SIEM. I wanted something small enough that I could explain every line of it.
 
@@ -8,7 +8,7 @@ Live demo: https://mini-siem-xup9tgpprnay5uk8fs8kof.streamlit.app (it runs on St
 
 ## Screenshot
 
-![mini-siem dashboard](docs/dashboard.png)
+![Mini SIEM dashboard](docs/dashboard.png)
 
 ## Quick start
 
