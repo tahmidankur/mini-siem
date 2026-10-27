@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.pytest_cache/
+siem.db
+.DS_Store
+STUDY.md
