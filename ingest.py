@@ -1,8 +1,10 @@
 import argparse
 from datetime import date
+from itertools import groupby
 from pathlib import Path
 
 import db
+import detections
 from parsers import parse_ssh, parse_web
 
 
@@ -37,6 +39,14 @@ def main() -> None:
     db.insert_events(conn, ssh_events + web_events)
     counts = db.count_events(conn)
     print(f"stored {sum(counts.values())} events in {args.db} (ssh {counts.get('ssh', 0)}, web {counts.get('web', 0)})")
+
+    alerts = detections.run_all(conn)
+    db.insert_alerts(conn, alerts)
+    print(f"\n{len(alerts)} alerts")
+    for rule, group in groupby(sorted(alerts, key=lambda a: a["rule"]), key=lambda a: a["rule"]):
+        print(f"\n{rule}")
+        for alert in group:
+            print(f"  {alert['severity']:<8} {alert['ip']:<15} {alert['ts_start']}  {alert['details']}")
     conn.close()
 
 
