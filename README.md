@@ -4,6 +4,8 @@ mini-siem is a small intrusion detection tool I built to learn how log-based det
 
 It's not meant to replace a real SIEM. I wanted something small enough that I could explain every line of it.
 
+Live demo: https://mini-siem-xup9tgpprnay5uk8fs8kof.streamlit.app (it runs on Streamlit Community Cloud, so if it has been idle it can take about 30 seconds to wake up)
+
 ## Screenshot
 
 ![mini-siem dashboard](docs/dashboard.png)
